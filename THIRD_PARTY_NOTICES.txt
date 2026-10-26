@@ -42,3 +42,15 @@ https://docs.google.com/spreadsheets/d/1meXOw4jR1hh7YXVMeijWwSDIXnCw6Tk4hTZPq2qv
 https://www.bandainamcoent.com/news/elden-ring-nightreign-hotfix-1-03-5
 https://docs.google.com/spreadsheets/d/1meXOw4jR1hh7YXVMeijWwSDIXnCw6Tk4hTZPq2qvyK4/edit
 Character tables: https://almanauts.com/nightreign/
+
+
+Weapon model & parameter acknowledgements
+
+CryptidTracker: original Nightreign weapon roster and AR formula research, 17 September 2025.
+https://docs.google.com/spreadsheets/d/1Os2EzEiqE29HKsiv6UjBEQQOZrxj9ssvPAKMDc8CYr8/edit
+Numerical facts rechecked against ip1259’s author-labelled Regulation 1.03.5 snapshot.
+https://github.com/ip1259/Rolling_Pool_Editor
+Snapshot SHA-256: 585d837ae6e4b3b1139293984ed1e4406e920fe6d809f7dce2d9399c910a9cd6
+Nightreign parameter definitions: Soulsmods / Smithbox.
+Independent AR reference tables: Almanauts.
+This implementation uses numerical facts and an independently implemented formula; no third-party calculator implementation was copied. Community data is not an official FromSoftware export.

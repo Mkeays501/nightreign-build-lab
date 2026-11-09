@@ -1,5 +1,7 @@
 # Nightreign Build Lab
 
+The web planner uses the same planner source and relic calculations as Android version 1.0.2. This includes advisory relic-combination warnings, the Raider conditional bonus, and the fix for duplicate non-stacking effects. Some relic interactions and numerical estimates remain unverified against the game.
+
 An independent **Elden Ring Nightreign build planner** for the web and Android. Choose a Nightfarer, equip relics, explore vessel colours, and compare how your build changes character stats and weapon attack rating.
 
 **[Open the web planner](https://mkeays501.github.io/nightreign-build-lab/)**

@@ -58,11 +58,17 @@ Warnings are planning guidance, not proof that a particular combination can drop
 - A shared link contains the build in its URL fragment; people receiving it can open the web planner.
 - The Android package requests no permissions, including no internet permission.
 - The app uses Android's document picker for importing and exporting JSON. Source links open in the device's browser.
-- The planner does not read or modify game saves.
+- The web planner imports PC `.sl2` / `.co2` saves locally to read relic inventories. It never uploads or modifies the file. Console saves are not supported.
+- Choose **My relics / import**, select your save file, choose a save slot, then confirm the collection. **My relics** lists owned relics compatible with the selected slot; **All relics** keeps the full fixed/custom picker available.
+- Add relics manually with **Custom relic → Save to My relics** or the fixed relic save button. Export/import collection JSON to transfer your collection between browsers.
+- Import replaces the collection after confirmation; existing builds are kept. Unknown effects remain visible, and relics with unsupported effects cannot be equipped.
+- The address bar updates automatically as the build changes. Opening the link restores the build without importing the sender’s whole collection.
 
 ## Repository contents
 
-The current website repository contains the ready-to-run `index.html`, web development sources in `source.zip`, and third-party notices.
+The website repository contains the ready-to-run `index.html`, editable development sources and tests in `web/`, and third-party notices.
+
+The November 10 web update adds larger interface text, clearer mobile relic cards, automatic build URLs, a persistent owned-relic collection and local PC save import. The separately distributed Android APK remains version 1.0.2; these new features are currently available on the website.
 
 The **Android source project is a separate package**. Its structure is:
 
@@ -169,7 +175,7 @@ Version 1.0.1 has **39 passing planner/adapter tests** and **14 native policy as
 
 The Android code compiled, and the APK's manifest, launcher and v2/v3 signatures were checked. Physical-device and emulator launch testing was not available in the build environment.
 
-For the separate web source archive, extract `source.zip`, then run `python build.py` and `node --test tests/*.test.mjs`.
+For the website, run `python web/build.py` and `node --test web/tests/*.test.mjs`. Copy `web/dist/index.html` to the repository root to publish the rebuilt page. The web suite has 46 passing tests. Save parsing was also checked against the upstream public `10slots.sl2` (1,289 and 1 relic in its populated slots) and `allen.sl2` (1,839 relics) fixtures; real save files are not committed here.
 
 ## Data sources and limitations
 

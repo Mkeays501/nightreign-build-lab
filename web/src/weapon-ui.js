@@ -1,0 +1,54 @@
+let weaponQuery='',weaponCategory='all',weaponSort='modified',weaponPage=0;
+const weaponById=new Map((NR.weaponData?.weapons||[]).map(w=>[w.id,w]));
+let currentArmoryResult=null;
+function normalizeArmament(){
+ state.armament=state.armament||{weaponId:4040000,affinity:'Standard',rarity:2,attackType:'standard'};
+ state.weaponCompare=state.weaponCompare||[];
+ if(!weaponById.has(state.armament.weaponId))state.armament.weaponId=weaponById.has(4040000)?4040000:NR.weaponData.weapons[0].id;
+}
+function selectedArmament(r){normalizeArmament();const w=weaponById.get(state.armament.weaponId),v=resolveWeaponVariant(w,state.armament.affinity,state.armament.rarity);return calculateArmament(NR,state,w,v,r);}
+function percentFactor(v){return `${v>=1?'+':''}${Number(((v-1)*100).toFixed(2))}%`;}
+function renderWeapons(r){
+ if(!NR.weaponData||!$('#weapon-select'))return;normalizeArmament();currentArmoryResult=r;
+ const a=selectedArmament(r),w=a.weapon,variants=w.variants||[],affinities=[...new Set(variants.map(v=>v.affinity))];
+ $('#weapon-select').innerHTML=[...NR.weaponData.weapons].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<option value="${x.id}"${w.id===x.id?' selected':''}>${E(x.name)} · ${E(x.category)}</option>`).join('');
+ const actualAffinity=a.variant?.affinity||'Standard';$('#weapon-affinity').innerHTML=affinities.length?affinities.map(x=>`<option${x===actualAffinity?' selected':''}>${E(x)}</option>`).join(''):'<option>Unavailable</option>';
+ const rarities=[...new Set(variants.filter(v=>v.affinity===actualAffinity).map(v=>v.rarity))].sort();$('#weapon-rarity').innerHTML=rarities.length?rarities.map(x=>`<option value="${x}"${x===a.variant.rarity?' selected':''}>${RARITY_NAMES[x]}</option>`).join(''):'<option>Unavailable</option>';
+ $('#weapon-attack').value=state.armament.attackType||'standard';
+ if(a.variant){state.armament.affinity=a.variant.affinity;state.armament.rarity=a.variant.rarity;}
+ if(!a.available){$('#weapon-readout').innerHTML=`<p class="weapon-unavailable">${E(a.reason)}</p>`;$('#weapon-relic-detail').innerHTML='';renderArmory(r);return;}
+ const delta=a.delta,model=a.weapon.currentParameters?'1.03.5 params':'1.02.2 source model';
+ $('#weapon-readout').innerHTML=`<div class="weapon-model-tags"><span class="small-tag">${E(w.category)}</span><span class="small-tag">${E(model)}</span>${w.descriptiveName?'<span class="small-tag">Descriptive starter label</span>':''}${a.partial?'<span class="small-tag">Some effects outside model</span>':''}</div><div class="ar-summary"><div class="ar-stat"><small>WITHOUT RELICS</small><strong>${a.baseline.total}</strong><span>${r.character.name} · LV.${state.level}</span></div><div class="ar-stat featured"><small>BUILD ATTACK RATING</small><strong>${a.modified.total}</strong><span>${delta>0?'+':''}${delta} AR from mapped relics</span></div><div class="ar-stat"><small>ADJUSTED POTENTIAL*</small><strong>${Math.trunc(a.potential)}</strong><span>Relic damage factors included</span></div></div><table class="ar-channel-table"><thead><tr><th>Channel</th><th>No relics</th><th>Build AR</th><th>Damage factor</th><th>Potential*</th></tr></thead><tbody>${AXES.map((axis,i)=>`<tr><td>${title(axis)}</td><td>${a.baseline.channels[i]}</td><td class="${a.modified.channels[i]!==a.baseline.channels[i]?'gain':''}">${a.modified.channels[i]}</td><td>×${a.rules.factors[axis].toFixed(3)}</td><td>${a.adjusted[i].toFixed(1)}</td></tr>`).join('')}</tbody></table>${a.casting?`<p class="caster-note">Catalyst scaling model: ${a.casting.every(v=>v===a.casting[0])?a.casting[0]:a.casting.map((v,i)=>title(AXES[i])+' '+v).join(' · ')}. This is separate from strike AR and actual spell damage.</p>`:''}${/Bow|Crossbow|Ballista/.test(w.category)?'<p class="weapon-assumptions">Ranged rating is weapon-only; ammunition and projectile attack values are not included.</p>':''}<p class="weapon-assumptions">Total uses unrounded channels before truncation. It can differ slightly from the sum of displayed channel values. No automatic two-hand Strength bonus is assumed.</p>`;
+ renderWeaponRules(a);renderArmory(r);
+}
+function renderWeaponRules(a){
+ const sourceRows=currentArmoryResult.ledger.filter(row=>row.id&&!['inactive','invalid','duplicate'].includes(row.status));
+ const ids=[...new Set(sourceRows.map(row=>row.id))],rules=NR.weaponRules?.effects||{};
+ const controls=ids.filter(id=>rules[id]&&(rules[id].requiresCondition||rules[id].requiresCount));
+ const controlsHTML=controls.map(id=>{const rule=rules[id],e=emap.get(id);return `<div class="weapon-relic-row"><label>${rule.requiresCount?`<input type="number" class="count-input" min="0" max="${rule.maxCount||10}" data-count="${id}" value="${state.counts[id]||0}">`:`<input type="checkbox" data-condition="${id}" ${state.conditions[id]?'checked':''}>`}<span>${E(e?.name||id)}</span></label><small>${E(rule.conditionLabel||'Apply only while active in your run.')}</small></div>`;}).join('');
+ const applied=a.rules.applied.map(row=>`<div class="weapon-relic-row"><span>${E(row.name)}</span><small>${Object.entries(row.damageMultipliers).map(([key,v])=>`${title(key)} ${percentFactor(v**row.count)}`).join(' · ')}${Object.keys(row.scalingAdjustments).length?'Scaling coefficients adjusted':''}</small></div>`).join('');
+ const omissions=[...a.rules.inactive,...a.rules.unknown].map(row=>`<div class="weapon-relic-row inactive"><span>${E(row.name)}</span><small>${E(row.reason)}</small></div>`).join('');
+ $('#weapon-relic-detail').innerHTML=(controlsHTML?'<div class="picker-section">RUN CONDITIONS</div>'+controlsHTML:'')+`<details class="weapon-relic-details" ${a.rules.applied.length?'open':''}><summary>${a.rules.applied.length} applicable weapon modifiers · ${a.rules.inactive.length+a.rules.unknown.length} inactive or outside model</summary>${applied||'<p class="micro-note">No mapped damage modifiers apply to this weapon and attack scenario.</p>'}${omissions}</details>`;
+}
+function renderArmory(r=currentArmoryResult){
+ if(!r||!NR.weaponData)return;
+ const categories=[...new Set(NR.weaponData.weapons.map(w=>w.category))].sort();
+ if($('#weapon-category').options.length<2)$('#weapon-category').innerHTML='<option value="all">Every weapon class</option>'+categories.map(c=>`<option>${E(c)}</option>`).join('');
+ $('#armory-context').textContent=`${r.character.name} · Level ${state.level} · ${state.armament.affinity} · ${RARITY_NAMES[state.armament.rarity]}`;
+ $('#weapon-source-notes').textContent=`${NR.weaponData.weapons.length} catalogued armaments with ${NR.weaponData.weapons.reduce((s,w)=>s+w.variants.length,0).toLocaleString()} parameter-backed affinity/rarity variants. ${NR.weaponData.currentDataNote||'Weapon baseline: regulation 1.02.2, 17 September 2025. Missing newer parameters are labelled.'}`;
+ $('#weapon-data-boundary').textContent=NR.weaponData.currentDataNote||'Weapon parameters use a versioned community snapshot. Relic damage rules use the 1.03.5 parameter snapshot. Native rarities and affinities are preserved; a weapon uses its nearest supported variant when the requested option does not exist.';
+ let all=NR.weaponData.weapons.filter(w=>(weaponCategory==='all'||w.category===weaponCategory)&&`${w.name} ${w.category}`.toLowerCase().includes(weaponQuery.toLowerCase())).map(w=>calculateArmament(NR,state,w,resolveWeaponVariant(w,state.armament.affinity,state.armament.rarity),r));
+ all.sort((a,b)=>weaponSort==='name'?a.weapon.name.localeCompare(b.weapon.name):((b.available?(weaponSort==='delta'?b.delta:weaponSort==='potential'?b.potential:b.modified.total):-Infinity)-(a.available?(weaponSort==='delta'?a.delta:weaponSort==='potential'?a.potential:a.modified.total):-Infinity))||a.weapon.name.localeCompare(b.weapon.name));
+ const pages=Math.max(1,Math.ceil(all.length/25));weaponPage=Math.max(0,Math.min(weaponPage,pages-1));let page=all.slice(weaponPage*25,(weaponPage+1)*25);
+ $('#weapon-count').textContent=`${all.length} / ${NR.weaponData.weapons.length}`;
+ $('#weapon-table-body').innerHTML=page.map(a=>`<tr class="${state.armament.weaponId===a.weapon.id?'is-selected':''}"><td><input type="checkbox" data-compare-weapon="${a.weapon.id}" aria-label="Compare ${E(a.weapon.name)}" ${state.weaponCompare.includes(a.weapon.id)?'checked':''}></td><td><button class="weapon-name" data-select-weapon="${a.weapon.id}">${E(a.weapon.name)}<small>${E(a.weapon.category)}</small></button></td><td>${a.available?`${E(a.variant.affinity)}<br>${RARITY_NAMES[a.variant.rarity]}`:'No model'}</td><td>${a.available?a.baseline.total:'—'}</td><td class="build-ar">${a.available?a.modified.total:'—'}</td><td class="${a.delta>0?'positive':''}">${a.available?(a.delta>0?'+':'')+a.delta:'—'}</td><td>${a.available?Math.trunc(a.potential):'—'}</td></tr>`).join('')||'<tr><td colspan="7">No weapons match these filters.</td></tr>';
+ $('#armory-page-label').textContent=`Page ${weaponPage+1} of ${pages} · ${all.length} matches`;
+ $('#weapon-prev').disabled=weaponPage===0;$('#weapon-next').disabled=weaponPage>=pages-1;renderWeaponComparison(r);
+}
+function renderWeaponComparison(r){
+ const items=state.weaponCompare.map(id=>weaponById.get(id)).filter(Boolean).map(w=>calculateArmament(NR,state,w,resolveWeaponVariant(w,state.armament.affinity,state.armament.rarity),r));
+ if(!items.length){$('#weapon-comparison').innerHTML='<p class="micro-note">Select up to four armaments in the table to compare their ratings under the same build.</p>';return;}
+ const rows=[['No-relic AR',a=>a.available?a.baseline.total:'—'],['Build AR',a=>a.available?a.modified.total:'—'],['AR change',a=>a.available?(a.delta>0?'+':'')+a.delta:'—'],...AXES.map((axis,i)=>[title(axis)+' AR',a=>a.available?a.modified.channels[i]:'—']),['Adjusted potential*',a=>a.available?Math.trunc(a.potential):'—']];
+ $('#weapon-comparison').innerHTML=`<div class="armament-comparison"><div class="compare-title"><span>${items.length} armaments · same build</span><button class="quiet" id="clear-weapon-compare">Clear selection</button></div><table class="compare-table"><thead><tr><th>Metric</th>${items.map(a=>`<th><button class="text-link" data-select-weapon="${a.weapon.id}">${E(a.weapon.name)}</button><br><small>${a.available?RARITY_NAMES[a.variant.rarity]+' · '+E(a.variant.affinity):'Parameters unavailable'}</small></th>`).join('')}</tr></thead><tbody>${rows.map(([label,fn])=>`<tr><td>${E(label)}</td>${items.map(a=>`<td>${fn(a)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function chooseWeapon(id){if(!weaponById.has(Number(id)))return;update(()=>{normalizeArmament();state.armament.weaponId=Number(id);const w=weaponById.get(Number(id)),v=resolveWeaponVariant(w,state.armament.affinity,state.armament.rarity);if(v){state.armament.affinity=v.affinity;state.armament.rarity=v.rarity;}},'Weapon selected. Ratings use your current build.');$('#weapon-focus').scrollIntoView({behavior:'smooth',block:'start'});}

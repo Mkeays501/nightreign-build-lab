@@ -39,3 +39,7 @@ input[type=search],input[type=text],.text-input,.search-input,select{font-size:1
  .build-toolbar input{font-size:25px}.ledger-info h3{font-size:15px}.ledger-info p{font-size:14px}.condition{font-size:14px}.results .panel-top button{max-width:none}
  .top{flex-wrap:wrap;gap:10px}.top nav{flex-wrap:wrap}.drawer-tabs{gap:8px}.drawer-tabs button{padding:10px 8px;min-width:110px}
 }
+
+/* Keep enlarged stat labels separated in narrow character panels. */
+.stat-heading,.stat-row{grid-template-columns:minmax(0,1fr) 42px 45px 54px;column-gap:3px}
+.stat-heading{letter-spacing:0}.stat-row{font-size:14px}

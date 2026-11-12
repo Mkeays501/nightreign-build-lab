@@ -43,6 +43,10 @@ export function relicWeaponFactors(data,state,weapon,result){
   for(const [attr,v] of Object.entries(rule.scalingAdjustments||{}))scaling[attr]=(scaling[attr]||0)+v;
   applied.push({id:row.id,name:e.name,damageMultipliers:rule.damageMultipliers||{},scalingAdjustments:rule.scalingAdjustments||{},count});
  }
+ if(state.character==='raider'&&state.conditions?.raiderFightersResolve){
+  for(const axis of Object.keys(factors))factors[axis]*=1.5;
+  applied.push({id:'raiderFightersResolve',name:"Fighter's Resolve — low-health buff",damageMultipliers:Object.fromEntries(Object.keys(factors).map(axis=>[axis,1.5])),scalingAdjustments:{},count:1});
+ }
  return{factors,scaling,applied,inactive,unknown};
 }
 export function calculateArmament(data,state,weapon,variant,result){

@@ -28,3 +28,10 @@ test('weapon choice, variant and comparison survive build JSON sanitation',()=>{
 
 test('Raider timed bonus changes potential only when active and leaves base AR intact',()=>{const s=makeState(),e=D.effects.find(e=>e.id==='7031300');put(s,0,e);let a=arm(s);assert.equal(a.rules.factors.physical,1);s.conditions[e.id]=true;a=arm(s);assert.equal(a.rules.factors.physical,1.1);assert.equal(a.modified.total,a.baseline.total);assert.ok(Math.abs(a.potential-a.modified.raw.reduce((x,y)=>x+y,0)*1.1)<1e-7);});
 test('fixed/random aliases share an active condition in weapon potential',()=>{const s=makeState();put(s,0,D.effects.find(e=>e.id==='10001'));put(s,1,D.effects.find(e=>e.id==='7032200'));s.conditions['7032200']=true;assert.equal(arm(s).rules.factors.physical,1.15);});
+test('Raider low-health passive is optional, persists, and applies only to Raider',()=>{
+ const s=makeState(),off=arm(s);s.conditions.raiderFightersResolve=true;
+ const on=arm(s);assert.equal(on.modified.total,off.modified.total);assert.ok(Math.abs(on.potential-off.potential*1.5)<1e-7);
+ assert.ok(on.rules.applied.some(x=>x.id==='raiderFightersResolve'));
+ assert.equal(sanitizeState(JSON.parse(JSON.stringify(s)),D).conditions.raiderFightersResolve,true);
+ s.character='wylder';const other=arm(s);s.conditions.raiderFightersResolve=false;assert.equal(other.potential,arm(s).potential);
+});

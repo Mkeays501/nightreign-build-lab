@@ -84,7 +84,7 @@ export function sanitizeState(raw,data){
  s.character=raw.character;s.name=String(raw.name||s.name).slice(0,70);s.level=clamp(Math.round(raw.level),1,15);s.deep=!!raw.deep;s.vessel=clamp(Math.round(raw.vessel||0),0,vesselsFor(data,s.character).length-1);
  const fixed=new Map(data.fixedRelics.map(r=>[r.id,r])),effects=new Set(data.effects.map(e=>e.id));
  s.slots=Array.from({length:6},(_,i)=>{const r=raw.slots?.[i];if(!r)return null;if(r.fixedId){const f=fixed.get(String(r.fixedId));return f?{name:f.name,color:f.color,type:'standard',fixedId:f.id,effects:[...f.effects],...(r.ownedId?{ownedId:String(r.ownedId).slice(0,100)}:{})}:null;}const ids=(r.effects||[]).map(String).filter(x=>/^\d{1,10}$/.test(x)).slice(0,6);return{name:String(r.name||'Custom relic').slice(0,80),color:COLORS.includes(r.color)&&r.color!=='any'?r.color:'red',type:i<3?'standard':'deep',effects:ids,...(r.ownedId?{ownedId:String(r.ownedId).slice(0,100)}:{})};});
- for(const [id,val] of Object.entries(raw.conditions||{}))if(effects.has(id))s.conditions[id]=val===true;
+ for(const [id,val] of Object.entries(raw.conditions||{}))if(effects.has(id)||id==='raiderFightersResolve')s.conditions[id]=val===true;
  for(const [id,val] of Object.entries(raw.counts||{}))if(effects.has(id))s.counts[id]=clamp(Math.round(val),0,10);
  const weapons=data.weaponData?.weapons||[];
  if(raw.armament&&typeof raw.armament==='object'){

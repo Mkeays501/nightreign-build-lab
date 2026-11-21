@@ -49,7 +49,12 @@ function renderResults(){const result=calculate(NR,state),{base,totals}=result;
  $('#coverage-note').classList.toggle('partial',!!result.unmodelled);
  $('#coverage-note').textContent=!result.equipped?'Equip a relic to see its effects.':`${result.equipped} equipped · ${result.ledger.filter(x=>x.status==='active').length} mapped/active effects${result.conditionalOff?` · ${result.conditionalOff} conditions off`:''}${result.unmodelled?` · ${result.unmodelled} effects outside the numerical model. Status totals are partial.`:'. Review the breakdown before comparing.'}`;
  $('#warnings').innerHTML=result.warnings.map(w=>`<div class="warning">Slot ${w.slot+1}: ${E(w.message)}</div>`).join('');
- for(const tab of ['effects','modifiers','compare'])$('#tab-'+tab).setAttribute('aria-selected',resultTab===tab);
+ for(const tab of $('.result-tabs').querySelectorAll('[role="tab"]')){
+  const selected=tab.id==='tab-'+resultTab;
+  tab.setAttribute('aria-selected',selected);
+  tab.tabIndex=selected?0:-1;
+ }
+ $('#result-content').setAttribute('aria-labelledby','tab-'+resultTab);
  if(resultTab==='effects')renderLedger(result);else if(resultTab==='modifiers')renderModifiers(result);else renderComparison(result);
  renderWeapons(result);
 }
@@ -144,6 +149,21 @@ document.addEventListener('click',async event=>{
  case 'modal-close':$('#modal').close();if(!$('#drawer').hidden)renderDrawer();break;
  case 'equip-custom':if(!validateRelic(draft,slotIndex>=3,emap).length)equip(structuredClone(draft));break;
  }
+});
+$('.result-tabs').addEventListener('keydown',event=>{
+ const tabs=[...event.currentTarget.querySelectorAll('[role="tab"]')];
+ const current=tabs.indexOf(event.target);
+ if(current===-1||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+ let next;
+ switch(event.key){
+  case 'ArrowLeft': next=(current+tabs.length-1)%tabs.length;break;
+  case 'ArrowRight': next=(current+1)%tabs.length;break;
+  case 'Home': next=0;break;
+  case 'End': next=tabs.length-1;break;
+  default: return;
+ }
+ event.preventDefault();
+ tabs[next].focus();
 });
 document.addEventListener('keydown',e=>{focusTrap(e);if(e.key==='Escape'&&!$('#drawer').hidden)closeDrawer();if(e.key==='Enter'&&e.target.matches('[data-open-slot]'))openSlot(Number(e.target.dataset.openSlot));});
 $('#drawer-backdrop').addEventListener('click',closeDrawer);

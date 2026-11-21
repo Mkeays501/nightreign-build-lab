@@ -214,3 +214,7 @@ Independent fan project. Not affiliated with or endorsed by **FromSoftware** or 
 Game names and official character artwork belong to their respective owners. Numerical data and research retain their original acknowledgements. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt) and the in-app notices for third-party terms.
 
 The Android package bundles **DM Sans** and **Cormorant Garamond** under SIL Open Font License 1.1. Their license files are included under `app/src/main/assets/fonts/` in the Android source project. Gradle Wrapper licensing is included separately.
+
+### Interface design
+
+The interface was refined using [Unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The design keeps Nightfarer artwork and relic colours, with charcoal surfaces, muted gold selections, readable labels and consistent spacing.

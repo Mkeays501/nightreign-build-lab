@@ -365,3 +365,25 @@ dialog::backdrop{background:#000b}
  dialog{padding:20px}.saved-card{flex-wrap:wrap}.saved-card .actions{width:100%}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+
+/* Illustrated weapon picker */
+.weapon-picker-field{min-width:0}
+.weapon-picker-field>span,.weapon-picker-filters label{display:block;color:var(--dim);font-size:13px}
+.weapon-picker-choice,#weapon-picker-results button,.weapon-table .weapon-name{display:flex;align-items:center;gap:12px;text-align:left}
+.weapon-picker-choice{width:100%;min-height:64px;margin-top:8px;padding:8px 12px;background:var(--bg)}
+.weapon-picker-choice>span:nth-child(2),#weapon-picker-results button>span:nth-child(2){min-width:0;overflow-wrap:anywhere}
+.weapon-picker-choice small,#weapon-picker-results small{display:block;color:var(--dim)}
+.weapon-picker-action{margin-left:auto;color:var(--gold);font-size:12px}
+.weapon-thumb{display:block;width:48px;height:48px;flex:0 0 48px;border-radius:4px}
+.weapon-thumb-art{background-image:var(--weapon-atlas);background-repeat:no-repeat;background-size:calc(24 * 48px) calc(var(--weapon-atlas-rows) * 48px);background-position:calc(var(--icon-x) * -48px) calc(var(--icon-y) * -48px)}
+.weapon-thumb-empty{display:grid;place-items:center;background:var(--panel2);color:var(--muted);font:11px/1.1 var(--font);text-align:center;padding:4px}
+#weapon-dialog{max-width:640px}
+#weapon-dialog .modal-head{margin-bottom:16px}
+.weapon-picker-filters{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px}
+.weapon-picker-filters input,.weapon-picker-filters select{display:block;width:100%;margin-top:4px}
+.weapon-picker-filters select{border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);padding:8px}
+#weapon-picker-results{list-style:none;margin:0;padding:4px 4px 12px;max-height:min(48dvh,432px);overflow:auto;display:grid;gap:4px}
+#weapon-picker-results button{width:100%;padding:4px 12px}
+#weapon-picker-results button[aria-current=true]{border-color:var(--gold);background:var(--panel2)}
+@media(max-width:1150px){.weapon-picker-field{grid-column:1/-1}}
+@media(max-width:650px){.weapon-picker-filters{grid-template-columns:1fr}}

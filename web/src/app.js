@@ -166,7 +166,6 @@ document.addEventListener('change',async event=>{const el=event.target;
   }catch(err){output.textContent='Import failed: '+err.message;}return;
  }
  if(el.id==='relic-source'){relicSource=el.value;persistCollection();}
- else if(el.id==='weapon-select'){chooseWeapon(el.value);}
  else if(el.id==='weapon-affinity'){state.armament.affinity=el.value;weaponPage=0;persist();renderResults();}
  else if(el.id==='weapon-rarity'){state.armament.rarity=Number(el.value);weaponPage=0;persist();renderResults();}
  else if(el.id==='raider-resolve'){state.conditions.raiderFightersResolve=el.checked;persist();renderResults();}

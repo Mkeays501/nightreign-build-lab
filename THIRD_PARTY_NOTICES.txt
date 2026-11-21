@@ -71,3 +71,10 @@ Interface refinement workflow: Unslop by Damir Sokolovsky (@heydamir).
 https://github.com/heydamir/unslop
 Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
 The workflow informed interface styling and copy; the application implementation was adapted for Nightreign Build Lab.
+
+Weapon thumbnails show existing game artwork © FromSoftware / Bandai Namco Entertainment.
+Shared armament icons: Eldenpedia, via the Elden Ring Calculator icon atlas by kideuler.
+https://github.com/kideuler/Elden-Ring-Calculator/tree/7eb16017c50831d685ac95f95b8daadd700fa6b3/data
+Nightreign starter weapon images: Mobalytics Nightreign Wiki and Fextralife Nightreign Wiki.
+https://mobalytics.gg/elden-ring-nightreign/wiki/weapons
+https://eldenringnightreign.wiki.fextralife.com/Weapons

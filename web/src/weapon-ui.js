@@ -9,9 +9,9 @@ function normalizeArmament(){
 function selectedArmament(r){normalizeArmament();const w=weaponById.get(state.armament.weaponId),v=resolveWeaponVariant(w,state.armament.affinity,state.armament.rarity);return calculateArmament(NR,state,w,v,r);}
 function percentFactor(v){return `${v>=1?'+':''}${Number(((v-1)*100).toFixed(2))}%`;}
 function renderWeapons(r){
- if(!NR.weaponData||!$('#weapon-select'))return;normalizeArmament();currentArmoryResult=r;
+ if(!NR.weaponData||!$('#weapon-picker'))return;normalizeArmament();currentArmoryResult=r;
  const a=selectedArmament(r),w=a.weapon,variants=w.variants||[],affinities=[...new Set(variants.map(v=>v.affinity))];
- $('#weapon-select').innerHTML=[...NR.weaponData.weapons].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<option value="${x.id}"${w.id===x.id?' selected':''}>${E(x.name)} · ${E(x.category)}</option>`).join('');
+ $('#weapon-picker').innerHTML=weaponThumbnail(w)+`<span id="weapon-picker-current">${E(w.name)}<small>${E(w.category)}</small></span><span class="weapon-picker-action">Change</span>`;
  const actualAffinity=a.variant?.affinity||'Standard';$('#weapon-affinity').innerHTML=affinities.length?affinities.map(x=>`<option${x===actualAffinity?' selected':''}>${E(x)}</option>`).join(''):'<option>Unavailable</option>';
  const rarities=[...new Set(variants.filter(v=>v.affinity===actualAffinity).map(v=>v.rarity))].sort();$('#weapon-rarity').innerHTML=rarities.length?rarities.map(x=>`<option value="${x}"${x===a.variant.rarity?' selected':''}>${RARITY_NAMES[x]}</option>`).join(''):'<option>Unavailable</option>';
  $('#weapon-attack').value=state.armament.attackType||'standard';
@@ -45,7 +45,7 @@ function renderArmory(r=currentArmoryResult){
  all.sort((a,b)=>weaponSort==='name'?a.weapon.name.localeCompare(b.weapon.name):((b.available?(weaponSort==='delta'?b.delta:weaponSort==='potential'?b.potential:b.modified.total):-Infinity)-(a.available?(weaponSort==='delta'?a.delta:weaponSort==='potential'?a.potential:a.modified.total):-Infinity))||a.weapon.name.localeCompare(b.weapon.name));
  const pages=Math.max(1,Math.ceil(all.length/25));weaponPage=Math.max(0,Math.min(weaponPage,pages-1));let page=all.slice(weaponPage*25,(weaponPage+1)*25);
  $('#weapon-count').textContent=`${all.length} / ${NR.weaponData.weapons.length}`;
- $('#weapon-table-body').innerHTML=page.map(a=>`<tr class="${state.armament.weaponId===a.weapon.id?'is-selected':''}"><td><input type="checkbox" data-compare-weapon="${a.weapon.id}" aria-label="Compare ${E(a.weapon.name)}" ${state.weaponCompare.includes(a.weapon.id)?'checked':''}></td><td><button class="weapon-name" data-select-weapon="${a.weapon.id}">${E(a.weapon.name)}<small>${E(a.weapon.category)}</small></button></td><td>${a.available?`${E(a.variant.affinity)}<br>${RARITY_NAMES[a.variant.rarity]}`:'No model'}</td><td>${a.available?a.baseline.total:'—'}</td><td class="build-ar">${a.available?a.modified.total:'—'}</td><td class="${a.delta>0?'positive':''}">${a.available?(a.delta>0?'+':'')+a.delta:'—'}</td><td>${a.available?Math.trunc(a.potential):'—'}</td></tr>`).join('')||'<tr><td colspan="7">No weapons match these filters.</td></tr>';
+ $('#weapon-table-body').innerHTML=page.map(a=>`<tr class="${state.armament.weaponId===a.weapon.id?'is-selected':''}"><td><input type="checkbox" data-compare-weapon="${a.weapon.id}" aria-label="Compare ${E(a.weapon.name)}" ${state.weaponCompare.includes(a.weapon.id)?'checked':''}></td><td><button class="weapon-name" data-select-weapon="${a.weapon.id}">${weaponThumbnail(a.weapon)}<span>${E(a.weapon.name)}<small>${E(a.weapon.category)}</small></span></button></td><td>${a.available?`${E(a.variant.affinity)}<br>${RARITY_NAMES[a.variant.rarity]}`:'No model'}</td><td>${a.available?a.baseline.total:'—'}</td><td class="build-ar">${a.available?a.modified.total:'—'}</td><td class="${a.delta>0?'positive':''}">${a.available?(a.delta>0?'+':'')+a.delta:'—'}</td><td>${a.available?Math.trunc(a.potential):'—'}</td></tr>`).join('')||'<tr><td colspan="7">No weapons match these filters.</td></tr>';
  $('#armory-page-label').textContent=`Page ${weaponPage+1} of ${pages} · ${all.length} matches`;
  $('#weapon-prev').disabled=weaponPage===0;$('#weapon-next').disabled=weaponPage>=pages-1;renderWeaponComparison(r);
 }
@@ -56,3 +56,71 @@ function renderWeaponComparison(r){
  $('#weapon-comparison').innerHTML=`<div class="armament-comparison"><div class="compare-title"><span>${items.length} armaments · same build</span><button class="quiet" id="clear-weapon-compare">Clear selection</button></div><table class="compare-table"><thead><tr><th>Metric</th>${items.map(a=>`<th><button class="text-link" data-select-weapon="${a.weapon.id}">${E(a.weapon.name)}</button><br><small>${a.available?RARITY_NAMES[a.variant.rarity]+' · '+E(a.variant.affinity):'Parameters unavailable'}</small></th>`).join('')}</tr></thead><tbody>${rows.map(([label,fn])=>`<tr><td>${E(label)}</td>${items.map(a=>`<td>${fn(a)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function chooseWeapon(id){if(!weaponById.has(Number(id)))return;update(()=>{normalizeArmament();state.armament.weaponId=Number(id);const w=weaponById.get(Number(id)),v=resolveWeaponVariant(w,state.armament.affinity,state.armament.rarity);if(v){state.armament.affinity=v.affinity;state.armament.rarity=v.rarity;}},'Weapon selected. Ratings use your current build.');$('#weapon-focus').scrollIntoView({behavior:'smooth',block:'start'});}
+
+const sortedWeapons = [...weaponById.values()].sort((a, b) => a.name.localeCompare(b.name));
+const picker = $('#weapon-dialog');
+const pickerSearch = $('#weapon-picker-search');
+const pickerClass = $('#weapon-picker-class');
+const pickerResults = $('#weapon-picker-results');
+
+function weaponThumbnail(weapon) {
+ const cell = WEAPON_ICONS[weapon.id];
+ if (cell === undefined) {
+  const label = weapon.id === 110000 ? 'Unarmed' : 'No image';
+  return `<span class="weapon-thumb weapon-thumb-empty" aria-hidden="true">${label}</span>`;
+ }
+ return `<span class="weapon-thumb weapon-thumb-art" aria-hidden="true" style="--icon-x:${cell % 24};--icon-y:${Math.floor(cell / 24)}"></span>`;
+}
+
+function weaponSearchText(value) {
+ return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function renderWeaponPicker() {
+ const terms = weaponSearchText(pickerSearch.value).split(' ').filter(Boolean);
+ const matches = sortedWeapons.filter(weapon => {
+  const name = weaponSearchText(weapon.name + ' ' + weapon.category + ' ' + (WEAPON_SEARCH_ALIASES[weapon.id] || ''));
+  return (!pickerClass.value || weapon.category === pickerClass.value) && terms.every(term => name.includes(term));
+ });
+ $('#weapon-picker-count').textContent = matches.length === 0 ? 'No weapons found' : `${matches.length} ${matches.length === 1 ? 'weapon' : 'weapons'}`;
+ pickerResults.innerHTML = matches.map(weapon => {
+  const selected = weapon.id === state.armament.weaponId;
+  return `<li><button type="button" data-pick-weapon="${weapon.id}"${selected ? ' aria-current="true"' : ''}>${weaponThumbnail(weapon)}<span>${E(weapon.name)}<small>${E(weapon.category)}</small></span>${selected ? '<span class="weapon-picker-action">Selected</span>' : ''}</button></li>`;
+ }).join('');
+}
+
+const WEAPON_SEARCH_ALIASES = {5750000: "Scholar's Thrusting Sword", 11750000: "Undertaker's Hammer"};
+pickerClass.innerHTML = '<option value="">All weapon classes</option>' +
+ [...new Set(sortedWeapons.map(weapon => weapon.category))].sort().map(category => `<option>${E(category)}</option>`).join('');
+$('#weapon-picker').addEventListener('click', () => {
+ pickerSearch.value = '';
+ pickerClass.value = '';
+ renderWeaponPicker();
+ picker.showModal();
+ pickerSearch.focus();
+});
+pickerSearch.addEventListener('input', renderWeaponPicker);
+pickerClass.addEventListener('change', renderWeaponPicker);
+pickerSearch.addEventListener('keydown', event => {
+ if (event.key !== 'ArrowDown' && event.key !== 'Enter') return;
+ const first = pickerResults.querySelector('button');
+ if (!first) return;
+ event.preventDefault();
+ if (event.key === 'Enter') first.click();
+ else first.focus();
+});
+pickerResults.addEventListener('keydown', event => {
+ if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+ const row = event.target.closest('li');
+ if (!row) return;
+ event.preventDefault();
+ if (event.key === 'ArrowDown') row.nextElementSibling?.querySelector('button')?.focus();
+ else (row.previousElementSibling?.querySelector('button') || pickerSearch).focus();
+});
+pickerResults.addEventListener('click', event => {
+ const choice = event.target.closest('[data-pick-weapon]');
+ if (!choice) return;
+ picker.close();
+ if (Number(choice.dataset.pickWeapon) !== state.armament.weaponId) chooseWeapon(choice.dataset.pickWeapon);
+ $('#weapon-picker').focus({preventScroll:true});
+});
